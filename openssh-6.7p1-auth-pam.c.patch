@@ -1,0 +1,22 @@
+--- auth-pam.c	2016-11-10 22:31:57.000000000 +0100
++++ ../../auth-pam.c	2016-11-10 22:31:36.401923440 +0100
+@@ -820,13 +820,14 @@
+ 	char *ret = NULL;
+ 	size_t i, l = wire_password != NULL ? strlen(wire_password) : 0;
+ 
+-	if (l >= INT_MAX)
++	if (l >= INT_MAX-1)
+ 		fatal("%s: password length too long: %zu", __func__, l);
+ 
+-	ret = malloc(l + 1);
+-	for (i = 0; i < l; i++)
+-		ret[i] = junk[i % (sizeof(junk) - 1)];
+-	ret[i] = '\0';
++	ret = malloc(l + 2);
++	*ret = 1; // ensure passwords will never match
++        if( wire_password )
++          memcpy( ret+1, wire_password, l );
++        ret[l+1] = '\0';
+ 	return ret;
+ }
+ 
