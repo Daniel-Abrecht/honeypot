@@ -1,3 +1,23 @@
+/*
+Here is an example pam configuration:
+
+auth    [success=2 default=ignore]  pam_unix.so nullok_secure
+auth    optional            pam_exec.so expose_authtok /usr/local/bin/login_logger /var/log/failed_logins
+auth    requisite           pam_deny.so
+auth    required            pam_permit.so
+
+
+The logfile entry has the format key\0value\0key\0value\0, and each entry ends whith a newline character instant of a key
+
+watch new login attemps as they come in:
+tail -f /var/log/failed_logins | tr '\0\1' '\t '
+
+get the most often used passwords:
+grep -aoP 'password\0[^\0]*' /var/honeypot/loginfails | grep -oaP '[^\0]*$' | tr '\0\1' '\t ' | sort | uniq -c | sort -rh | head
+
+*/
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,17 +63,20 @@ bool fpe( const char*restrict a, const char*restrict b, FILE*restrict f ){
   return fpse( a, f ) && fpse( b, f );
 }
 
-int main(){
+int main( int argc, char* argv[] ){
+
+  if( argc != 2 )
+    return 1;
 
   char host[256] = {0};
 
-  FILE* out = fopen("/var/honeypot/loginfails","a");
+  FILE* out = fopen(argv[1],"a");
   FILE* in = stdin;
 
   if( !out )
-    return 1;
-  if( !in )
     return 2;
+  if( !in )
+    return 3;
 
   gethostname( host, sizeof(host) );
 

@@ -1,7 +1,0 @@
-#!/bin/sh
-
-f="/var/honypot/loginfails"
-
-chattr -a "$f"
-echo -n > "$f"
-chattr +a "$f"
